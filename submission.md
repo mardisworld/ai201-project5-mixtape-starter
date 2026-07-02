@@ -29,33 +29,32 @@ ai201-project5-mixtape-starter/
 └── .gitignore
 ```
 
-
 ## Codebase Orientation 
 
-## Routes
+## Data Flow
 
 ### Feed Routes
 
-feed.py, with route: /feed/user_id/listening-now                  -->  feed_service.get_friends_listening_now(user_id) 
-feed.py, with route: /feed/user_id/activity                       -->  feed_service.get_activity_feed(user_id)   
+1. feed.py, with route: GET/feed/user_id/listening-now     -->  feed_service.get_friends_listening_now(user_id) 
+2. feed.py, with route: GET/feed/user_id/activity          -->  feed_service.get_activity_feed(user_id)   
 
 ### Playlists 
 
-playists.py, with route: /playists/post                           -->  playlist_service.create_playlist(name, created_by, is_collaborative)
-playists.py, with route: /playists//playlist_id                   -->  playlist_service.get_detail(playlist_id):
-playists.py, with route: /playists//playlist_id>/songs            -->  playlist_service.get_playlist_songs(playlist_id)
-playists.py, with route: /playists/post//playlist_id/songs        -->  playlist_service.dd_to_playlist(playlist_id, song_id, added_by)
+1. playists.py, with route: GET/playists/post                -->  playlist_service.create_playlist(name, created_by, is_collaborative)
+2. playists.py, with route: GET/playists//playlist_id        -->  playlist_service.get_detail(playlist_id):
+3. playists.py, with route: GET/playists//playlist_id>/songs -->  playlist_service.get_playlist_songs(playlist_id)
+4. playists.py, with route: POST/playists/playlist_id/songs  -->  playlist_service.dd_to_playlist(playlist_id, song_id, added_by)
 
 
 ### Songs
 
-songs.py, with route:    /songs/search                            --> search_service.search_songs(query: str)
-songs.py, with route:    /songs/song_id                           --> search_service.get_song(song_id)
-songs.py, with route:    /post/songs/song_id/rate                 --> notification_service.rate_song(user_id: str, song_id: str, score: int)
-songs.py, with route:    /post/songs/song_id/listen               --> streak_service.record_listening_event(user_id:, song_id)
+1. songs.py, with route:    GET/songs/search                 --> search_service.search_songs(query: str)
+2. songs.py, with route:    GET/songs/song_id                --> search_service.get_song(song_id)
+3. songs.py, with route:    POST/songs/song_id/rate          --> notification_service.rate_song(user_id: str, song_id: str, score: int)
+4. songs.py, with route:    POST/songs/song_id/listen        --> streak_service.record_listening_event(user_id:, song_id)
 
 ### Users
-users.py, with route:    /users/user_id                           --> will call db.session.get(User, user_id) or return jsonify(user.to_dict())
-users.py, with route:    /users/user_id/streak                    --> streak_service.get_streak(user_id)
-users.py, with route:    /users/user_id/notifications             --> notification_service.get_notifications(user_id)
-users.py, with route:    /post/users/notifications/notification_id/read  --> notification_service./notifications/notification_id/read"
+1. users.py, with route:    GET/users/user_id                --> will call db.session.get(User, user_id), and return jsonify({"error": "User not found"}) or jsonify(user.to_dict())
+2. users.py, with route:    GET/users/user_id/streak         --> streak_service.get_streak(user_id)
+3. users.py, with route:    GET//users/user_id/notifications  --> notification_service.get_notifications(user_id)
+4. users.py, with route:    POST//users/notifications/notification_id/read  --> notification_service.read_notification(notification_id) and try notification_service.mark_as_read(notification_id)
