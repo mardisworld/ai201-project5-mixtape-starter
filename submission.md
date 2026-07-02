@@ -219,3 +219,34 @@ For Issue #4 (notifications), the root cause is architectural, not a typo. Look 
 <!--TODO: Bug spotted: In update_listening_streak() on streak_service.py:67: elif days_since_last == 1 and today.weekday() != 6: The today.weekday() != 6 condition skips the streak increment on Sundays (weekday 6), which means listening on a Sunday after Saturday never extends the streak. This looks unintentional — the streak rules in the docstring make no mention of Sunday being excluded. (#1)-->
 
 <!-- TODO: Bug spotted: In get_playlist_songs() on playlist_service.py:63:. The docstring says "returns all songs in the playlist," but songs[:-1] drops the final song. It should be songs (no slice). (#5)-->
+
+Root Cause Analysis Format
+For each of the 3+ bugs you fix, write an entry in your submission doc with all five of these fields:
+
+## Root Cause Analysis Formatting
+
+Issue number and title
+
+How you reproduced it — What steps did you take to confirm the bug exists before touching any code? What inputs, sequence of actions, or data condition triggered the behavior?
+How you found the root cause — Which files did you look at? What was your navigation path? What moment made you confident you'd found the right place — not just a suspicious area, but the specific cause?
+The root cause — In plain English, explain exactly what was wrong. Not "there was a bug in the streak logic" — explain the specific condition, comparison, or missing step that caused the problem.
+Your fix and side-effect check — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything?
+
+What a precise root cause looks like vs. a surface-level one:
+
+❌ Surface-level: "The streak reset logic had a bug where it wasn't handling Sundays correctly."
+
+✅ Precise: "Python's datetime.weekday() returns 6 for Sunday, but the streak code was checking weekday() == 0 to detect the start of a new week, which matches Monday instead. Any streak update on a Sunday was treated as a mid-week entry, so the streak never reset when the week turned over on Sunday nights. The fix was to change the comparison to isoweekday() == 7 (Sunday = 7 in ISO convention), which correctly identifies the week boundary."
+
+### Explanations 
+At least 2 explanations name a specific function or variable and explain the mechanism: why that specific thing caused the reported behavior under the specific conditions it manifested (e.g., "only on Sundays," "only for songs with multiple tags").
+
+At least one explanation demonstrates causal reasoning — it explains not just what was wrong but why the correct behavior requires something different.
+
+### Navigation Strategy
+- At least 3 entries describe a real navigation path: which files were looked at, what was followed (a function call, a query, a data flow), and what moment made the student confident they'd found the root cause.
+- The strategies described reflect deliberate exploration, not a lucky first guess. The entries show the student tracing a path, not just arriving at an answer.
+
+### Side-Effect Checks
+- At least 3 entries describe a specific, deliberate check — what related functionality was looked at after the fix to confirm it wasn't affected, and why that check was sufficient.
+- At least one entry describes a check that goes beyond "the app still ran" — it identifies a specific behavior or code path that could plausibly have been affected by the fix and confirms it wasn't.
