@@ -97,6 +97,39 @@ def test_get_friends_listening_now_deduplicates_per_friend(app, seed_feed):
         assert len(friend_ids) == len(set(friend_ids))
 
 
+def test_get_friends_listening_now_excludes_stale_events(app):
+    """A friend who listened 20 hours ago should not appear in 'listening now'.
+
+    This test directly catches Bug #2: RECENT_THRESHOLD was set to 24 hours,
+    which incorrectly included friends who listened last night. A 20-hour-old
+    event falls within the buggy 24-hour window but outside the correct 1-hour
+    window, so this test fails before the fix and passes after.
+    """
+    with app.app_context():
+        user = User(username="testuser", email="testuser@example.com")
+        friend = User(username="stale_friend", email="stale@example.com")
+        db.session.add_all([user, friend])
+        db.session.flush()
+
+        db.session.execute(
+            friendships.insert().values(user_id=user.id, friend_id=friend.id)
+        )
+
+        song = Song(title="Last Night Song", artist="Artist X", shared_by=user.id)
+        db.session.add(song)
+        db.session.flush()
+
+        db.session.add(ListeningEvent(
+            user_id=friend.id,
+            song_id=song.id,
+            listened_at=datetime.now() - timedelta(hours=20),
+        ))
+        db.session.commit()
+
+        results = get_friends_listening_now(user.id)
+        assert results == []
+
+
 def test_get_friends_listening_now_no_friends_returns_empty(app):
     """A user with no friends should get an empty feed."""
     with app.app_context():
