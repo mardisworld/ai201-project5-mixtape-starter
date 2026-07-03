@@ -225,12 +225,12 @@ For each of the 3+ bugs you fix, write an entry in your submission doc with all 
 
 ## Root Cause Analysis Formatting
 
-Issue number and title
+### Issue number and title
 
-How you reproduced it — What steps did you take to confirm the bug exists before touching any code? What inputs, sequence of actions, or data condition triggered the behavior?
-How you found the root cause — Which files did you look at? What was your navigation path? What moment made you confident you'd found the right place — not just a suspicious area, but the specific cause?
-The root cause — In plain English, explain exactly what was wrong. Not "there was a bug in the streak logic" — explain the specific condition, comparison, or missing step that caused the problem.
-Your fix and side-effect check — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything?
+***How you reproduced it*** — What steps did you take to confirm the bug exists before touching any code? What inputs, sequence of actions, or data condition triggered the behavior?
+***How you found the root cause*** — Which files did you look at? What was your navigation path? What moment made you confident you'd found the right place — not just a suspicious area, but the specific cause?
+***The root cause*** — In plain English, explain exactly what was wrong. Not "there was a bug in the streak logic" — explain the specific condition, comparison, or missing step that caused the problem.
+***Your fix and side-effect check*** — What did you change and why does that change fix the root cause? What related functionality did you check afterward to confirm you didn't break anything?
 
 What a precise root cause looks like vs. a surface-level one:
 
@@ -250,3 +250,47 @@ At least one explanation demonstrates causal reasoning — it explains not just 
 ### Side-Effect Checks
 - At least 3 entries describe a specific, deliberate check — what related functionality was looked at after the fix to confirm it wasn't affected, and why that check was sufficient.
 - At least one entry describes a check that goes beyond "the app still ran" — it identifies a specific behavior or code path that could plausibly have been affected by the fix and confirms it wasn't.
+
+### Test Results Before Beginning Bug Fixes
+![alt text](<Images/Test_Files/1. Test Run 1.png>)
+
+## 1. Bug Fix 5
+
+***Navigaation Strategy***
+This bug is a problem with this ruote: it is not retrieving the last song ina playlist given a playlist id.
+
+Route: playists.py, with route: GET/playists//playlist_id>/songs -->  playlist_service.get_playlist_songs(playlist_id)
+
+***Reproducting the Error***
+I ran the app with the /playists//playlist_id>/songs path -> http://127.0.0.1:5000/playlists/154122e3-a8a3-420c-8baa-4e59e23c1bc7/songs
+
+This gave back the following data:
+![alt text](<Images/Bug_Verifications_Before_Fixes/1. Bug verification before fix.png>)
+
+In models.db, there are seven songs listed for this playlist, so I know that it is missing a song, and I verified that the song that was missing was the last songin the playlist by comparing it to the songs table. The last song is Free Throw by Hoop Dreams, and it is not being listed before the bug fix. 
+
+***Explanation***
+Following the route, I opened up the playlist_service.py file and found the function in question -> 
+playlist_service.get_playlist_songs(playlist_id). 
+
+On Line 66, the function returns: return [song.to_dict() for song in songs[:-1]]. songs[:-1] (slice) drops the final song.
+
+***Fix***
+Change return [song.to_dict() for song in songs]
+
+***Verification After Fix***
+![alt text](<Images/Bug_Verification_After_Fixes/1. Bug verification after fix - (5).png>)
+
+***Side Effect Checks***
+
+I didn't think that this change would impact other routes, but decided to verify that the following route call still worked as expected. 
+
+playists.py, with route: GET/playists//playlist_id        -->  playlist_service.get_detail(playlist_id):
+
+![alt text](<Images/Side_Effect_Checks/1. Side Effect Check After Bug Fix 5.png>)
+
+To my surprise, I found that the code change fixed two of the failed tests. Although I couldn't figure out how to get the same format as I had in the original test results file, you can see here that both tests from test_playlists.py now pass. 
+
+![alt text](<Images/Test_Files/2. Test Run 2 (After Bug Fix 5).png>)
+
+ 
