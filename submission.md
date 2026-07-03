@@ -280,9 +280,11 @@ playlist_service.get_playlist_songs(playlist_id).
 On Line 66, the function returns: return [song.to_dict() for song in songs[:-1]]. songs[:-1] (slice) drops the final song.
 
 ***Fix***
+
 Change return [song.to_dict() for song in songs]
 
 ***Verification After Fix***
+
 ![alt text](<Images/Bug_Verification_After_Fixes/1. Bug verification after fix - (5).png>)
 
 ***Side Effect Checks***
@@ -300,10 +302,12 @@ To my surprise, I found that the code change fixed two of the failed tests. Alth
 ## 2. Root Cause Analysis for Bug Fix 2: Friends Listening Now shows people from yesterday	 
 
 ***Navigaation Strategy***
+
 This bug is a problem with this route:
 feed.py, with route: GET/feed/user_id/listening-now        -->  feed_service.get_friends_listening_now(user_id)  
 
 ***Reproducting the Error***
+
 I ran the app with the /feed/user_id/listening-now path -> http://127.0.0.1:5000/feed/4beadfa5-04db-46fe-99be-ea35a7f17a39/listening-now
 
 This gave back the following data:
@@ -311,7 +315,7 @@ This gave back the following data:
 
 The third entry, for Simone, should not be there. She was listening yesterday, which falls outside of the adjusted RECENT_THRESHOLD = timedelta(hours=1) in feed_service.py. 
 
-***Explanatin***
+***Explanation***
 
 There are two issues here. 
 1. RECENT_THRESHOLD = timedelta(hours=24) — 24 hours is too wide for "listening now." It includes anyone who listened yesterday.
@@ -335,7 +339,7 @@ Re-seeding recalculates all timestamps relative to the current now, making the e
 ***Side Effect Checks***
 I could not think of any side effects that this bug fix might have caused, and it did not improve test coverage, so I am not completing this section for this bug fix. I did add a unit test that would have caught this bug.
 
-
+## 2. Root Cause Analysis for Bug Fix 3: The same song keeps showing up twice in search	
 
 
 
