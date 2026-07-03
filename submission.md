@@ -200,12 +200,12 @@ I had to use AI to reseed the data in seed_data.py, because the data was stale a
 
 ## Bug Fixes
 
-| # |------------------------------------------Title------------------------------------------| Affected service
-| 1	| My listening streak keeps resetting	                                                  | streak_service.py
-| 2	| Friends Listening Now shows people from yesterday	                                      | feed_service.py
-| 3	| The same song keeps showing up twice in search	                                      | search_service.py
+| # |------------------------Title------------------------------------------| Affected service
+| 1	| My listening streak keeps resetting	                                | streak_service.py
+| 2	| Friends Listening Now shows people from yesterday	                    | feed_service.py
+| 3	| The same song keeps showing up twice in search	                    | search_service.py
 | 4	| I got notified when a friend added my song to a playlist but not when they rated it	  | notification_service.py
-| 5	| The last song in a playlist never shows up	                                          | playlist_service.py
+| 5	| The last song in a playlist never shows up	                        | playlist_service.py
 
 ## Bug Fixes
 
@@ -261,7 +261,7 @@ At least one explanation demonstrates causal reasoning — it explains not just 
 ## 1. Root Cause Analysis for Bug Fix 5: The last song in a playlist never shows up
 
 ***Navigaation Strategy***
-This bug is a problem with this ruote: it is not retrieving the last song ina playlist given a playlist id.
+This bug is a problem with this ruote: it is not retrieving the last song in a playlist given a playlist id.
 
 Route: playists.py, with route: GET/playists//playlist_id>/songs -->  playlist_service.get_playlist_songs(playlist_id)
 
@@ -301,6 +301,8 @@ To my surprise, I found that the code change fixed two of the failed tests. Alth
 
 ## 2. Root Cause Analysis for Bug Fix 2: Friends Listening Now shows people from yesterday	 
 
+This bug is a problem with this route: it is showing people who listened to a playlist yesterday, not people listening now. 
+
 ***Navigaation Strategy***
 
 This bug is a problem with this route:
@@ -339,9 +341,69 @@ Re-seeding recalculates all timestamps relative to the current now, making the e
 ***Side Effect Checks***
 I could not think of any side effects that this bug fix might have caused, and it did not improve test coverage, so I am not completing this section for this bug fix. I did add a unit test that would have caught this bug.
 
-## 2. Root Cause Analysis for Bug Fix 3: The same song keeps showing up twice in search	
+
+## 3. Root Cause Analysis for Bug Fix 4:  I got notified when a friend added my song to a playlist but not when they rated it
+
+***Navigaation Strategy***
+
+This bug is a problem with this route: it is notifying users when a friend adds their song, but not when they rate their song. 
+
+users.py, with route:    GET/users/user_id/notifications --> notification_service.get_notifications(user_id)
+
+***Reproducting the Error***
+
+First, need to post a rating for that song.
+
+![alt text](<Images/Bug_Verifications_Before_Fixes/3. Bug Verification  4 - post rating.png>)
+
+Then verify user is not being notified of rating. 
+
+![alt text](<Images/Bug_Verifications_Before_Fixes/3. Bug verification before (4).png>)
+
+***Verification After Fix***
+
+After bug fix is made, both types of notification show up. 
+
+![alt text](<Images/Bug_Verification_After_Fixes/3. Bug verification after fix (4).png>)
+
+***Explanation***
+
+The root cause of this bug was that rate_song() in notification_service.py saves the Rating record and commits, but never calls create_notification(). The notification step was simply never written. Compare with add_to_playlist() which calls create_notification() after its commit — rate_song() is missing that entire block.
+
+***Side Effect Checks***
+I could not think of any side effects that this bug fix might have caused, and it did not improve test coverage, so I am not completing this section for this bug fix. I did add two unit tests that would have caught this bug.
 
 
+
+
+
+
+
+
+
+
+
+<!--skipping for now, I could not reproduce bug>
+## 5. Root Cause Analysis for Bug Fix 3: The same song keeps showing up twice in search	
+
+***Navigaation Strategy***
+The bug is a problem with this route: the same song keeps showing up twice in search.
+
+songs.py, with route:    GET/songs/search                 --> search_service.search_songs(query: str)
+
+Query returns all songs where the title or artist contains the query string (case-insensitive), along with their associated tags.
+
+***Reproducting the Error***
+I ran the app with the path /songs/search  -->    
+
+
+***Explanation***
+
+
+***Fix(es)***
+
+
+***Side Effect Checks***
 
 
 

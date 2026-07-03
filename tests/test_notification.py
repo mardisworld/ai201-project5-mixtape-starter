@@ -251,3 +251,35 @@ def test_rate_song_invalid_user_raises(app, seed_data):
                 song_id=seed_data["song_id"],
                 score=3,
             )
+
+
+def test_rate_song_notifies_sharer(app, seed_data):
+    """
+    rate_song should create a notification for the song's original sharer.
+
+    This test directly catches Bug #4: rate_song() saved the Rating but never
+    called create_notification(), so the sharer received no alert. Without the
+    notification block, get_notifications() returns an empty list here.
+    """
+    with app.app_context():
+        rate_song(
+            user_id=seed_data["other_id"],
+            song_id=seed_data["song_id"],
+            score=5,
+        )
+        notifications = get_notifications(seed_data["sharer_id"])
+        assert len(notifications) == 1
+        assert notifications[0]["type"] == "song_rated"
+        assert "Test Song" in notifications[0]["body"]
+
+
+def test_rate_song_no_notification_if_sharer_rates_own_song(app, seed_data):
+    """No notification should be created when the sharer rates their own song."""
+    with app.app_context():
+        rate_song(
+            user_id=seed_data["sharer_id"],
+            song_id=seed_data["song_id"],
+            score=4,
+        )
+        notifications = get_notifications(seed_data["sharer_id"])
+        assert len(notifications) == 0
