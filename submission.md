@@ -194,9 +194,13 @@ Missing coverage:
 ### test_streaks.py
 For test_streaks.py, it said all 5 bugs are are well-written and cover the key cases: new user, consecutive days, same-day double count, skipped day, and the Sunday edge case. Notably, test_streak_increments_on_sunday directly tests the bug flagged in streak_service.py (the weekday() != 6 condition) — so this test will fail until that bug is fixed.
 
+## AI Usage - Reseed Data
+I had to use AI to reseed the data in seed_data.py, because the data was stale and I was not able to reproducethe error. 
+
+
 ## Bug Fixes
 
-| # |	                   Title	                                                          | Affected service
+| # |------------------------------------------Title------------------------------------------| Affected service
 | 1	| My listening streak keeps resetting	                                                  | streak_service.py
 | 2	| Friends Listening Now shows people from yesterday	                                      | feed_service.py
 | 3	| The same song keeps showing up twice in search	                                      | search_service.py
@@ -254,7 +258,7 @@ At least one explanation demonstrates causal reasoning — it explains not just 
 ### Test Results Before Beginning Bug Fixes
 ![alt text](<Images/Test_Files/1. Test Run 1.png>)
 
-## 1. Bug Fix 5
+## 1. Root Cause Analysis for Bug Fix 5: The last song in a playlist never shows up
 
 ***Navigaation Strategy***
 This bug is a problem with this ruote: it is not retrieving the last song ina playlist given a playlist id.
@@ -293,4 +297,59 @@ To my surprise, I found that the code change fixed two of the failed tests. Alth
 
 ![alt text](<Images/Test_Files/2. Test Run 2 (After Bug Fix 5).png>)
 
- 
+## 2. Root Cause Analysis for Bug Fix 2: Friends Listening Now shows people from yesterday	 
+
+***Navigaation Strategy***
+This bug is a problem with this route:
+feed.py, with route: GET/feed/user_id/listening-now        -->  feed_service.get_friends_listening_now(user_id)  
+
+***Reproducting the Error***
+I ran the app with the /feed/user_id/listening-now path -> http://127.0.0.1:5000/feed/4beadfa5-04db-46fe-99be-ea35a7f17a39/listening-now
+
+This gave back the following data:
+![alt text](<Images/Bug_Verifications_Before_Fixes/2. Bug verification before fix (2).png>)
+
+The third entry, for Simone, should not be there. She was listening yesterday, which falls outside of the adjusted RECENT_THRESHOLD = timedelta(hours=1) in feed_service.py. 
+
+***Explanatin***
+
+There are two issues here. 
+1. RECENT_THRESHOLD = timedelta(hours=24) — 24 hours is too wide for "listening now." It includes anyone who listened yesterday.
+2. Timezone mismatch — listened_at is stored as a naive datetime, but datetime.now(timezone.utc) produces a timezone-aware cutoff, which can cause inconsistent comparisons in SQLite.
+
+***Fix(es)***
+Two changes made to feed_service.py:
+
+1. timedelta(hours=24) → timedelta(hours=1) — The root cause. 24 hours includes events from yesterday. 1 hour matches what "listening now" actually means.
+2. datetime.now(timezone.utc) → datetime.now() — SQLAlchemy's db.Column(db.DateTime) stores naive datetimes in SQLite. Comparing a timezone-aware cutoff against naive stored values causes an inconsistent comparison. Using datetime.now() (naive, local time) keeps both sides consistent.
+
+I also had to make changes to seed_data.py.
+
+The original seed data was created when the database was first initialized — all the "recent" listening events (now - timedelta(minutes=10), etc.) were computed relative to that past moment. By the time Itried to test the feed, those events were 40+ hours old, so nothing fell within the 24-hour window and the feed returned an empty list. 
+
+Re-seeding recalculates all timestamps relative to the current now, making the events fresh again. Without fresh seed data, the bug couldn't be reproduced at all.
+
+***Verification After Fix***
+![alt text](<Images/Bug_Verification_After_Fixes/2. Bug verification after fix (2).png>)
+
+***Side Effect Checks***
+I could not think of any side effects that this bug fix might have caused, and it did not improve test coverage, so I am not completing this section for this bug fix. I did add a unit test that would have caught this bug.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Stretch Feature: 
+
+I added a test in test_feed.py that would have caught this error (lines 100-120): 
+test_get_friends_listening_now_excludes_stale_events(app):
