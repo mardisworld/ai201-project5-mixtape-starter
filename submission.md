@@ -474,7 +474,9 @@ This change also fixed the two remaining failing tests.
 ![alt text](<Images/Test_Files/4. Test Run 4 (After Bug Fix  3).png>)
 
 
+### git log --oneline
 
+![alt text](<Images/git log --oneline.png>)
 
 ## Stretch Feature: 
 
@@ -491,3 +493,6 @@ I added 3 tests for test_search.py
 I added a test in test_feed.py that would have caught this error: Bug Fix 2: Friends Listening Now shows people from yesterday test_get_friends_listening_now_excludes_stale_events(app).
 
 I added two unit tests in test_notificatons.py that would have caught this error: Bug Fix 4: I got notified when a friend added my song to a playlist but not when they rated it. 
+
+### Regression Testing
+Copilot didn't differentiate between regression testing and the unit testing that I had already added, so hopefully the unit tests I added are sufficient for the stretch feature. 
