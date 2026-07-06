@@ -70,7 +70,7 @@ For test_streaks.py, it said all 5 bugs are are well-written and cover the key c
 I had to use AI to reseed the data in seed_data.py, because the data was stale and I was not able to reproducethe error. 
 
 
-## Codebase Orientation -> Data Flow
+## Codebase Orientation/ Code Mapping -> Data Flow
 
 ### Feed Routes
 
@@ -98,7 +98,7 @@ I had to use AI to reseed the data in seed_data.py, because the data was stale a
 3. users.py, with route:    GET/users/user_id/notifications --> notification_service.get_notifications(user_id)
 4. users.py, with route:    POST/users/notifications/notification_id/read  --> notification_service.read_notification(notification_id) and try notification_service.mark_as_read(notification_id)
 
-## Codebase Orientation -> Service Summaries (provided by AI, as describedin AI Usage section below)
+## Codebase Orientation / Code Mapping  -> Service Summaries (provided by AI, as describedin AI Usage section below)
 
 ### feed_service.py
 
