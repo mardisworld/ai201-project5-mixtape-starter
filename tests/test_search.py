@@ -119,15 +119,15 @@ def test_search_returns_empty_for_no_match(app, seed_songs):
         assert results == []
 
 
-# def test_search_is_case_insensitive(app, seed_songs):
-#     """Search should match regardless of query casing."""
-#     with app.app_context():
-#         results_lower = search_songs("borough")
-#         results_upper = search_songs("BOROUGH")
-#         titles_lower = [r["title"] for r in results_lower]
-#         titles_upper = [r["title"] for r in results_upper]
-#         assert "Crown Heights Anthem" in titles_lower
-#         assert "Crown Heights Anthem" in titles_upper
+def test_search_is_case_insensitive(app, seed_songs):
+    """Search should match regardless of query casing."""
+    with app.app_context():
+        results_lower = search_songs("borough")
+        results_upper = search_songs("BOROUGH")
+        titles_lower = [r["title"] for r in results_lower]
+        titles_upper = [r["title"] for r in results_upper]
+        assert "Crown Heights Anthem" in titles_lower
+        assert "Crown Heights Anthem" in titles_upper
 
 
 def test_get_song_returns_song_dict(app, seed_songs):
