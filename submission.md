@@ -207,7 +207,7 @@ I had to use AI to reseed the data in seed_data.py, because the data was stale a
 | 4	| I got notified when a friend added my song to a playlist but not when they rated it	  | notification_service.py
 | 5	| The last song in a playlist never shows up	                        | playlist_service.py
 
-## Bug Fixes
+## Bug Fixes: Notes from AI, Assignment, and TODOs
 
 <!-- Notes from Assignment: 
 
@@ -372,6 +372,55 @@ The root cause of this bug was that rate_song() in notification_service.py saves
 
 ***Side Effect Checks***
 I could not think of any side effects that this bug fix might have caused, and it did not improve test coverage, so I am not completing this section for this bug fix. I did add two unit tests that would have caught this bug.
+
+## 4. Root Cause Analysis for Bug Fix 1:  My listening streak keeps resetting	
+
+<!--TODO: Bug spotted: In update_listening_streak() on streak_service.py:67: elif days_since_last == 1 and today.weekday() != 6: The today.weekday() != 6 condition skips the streak increment on Sundays (weekday 6), which means listening on a Sunday after Saturday never extends the streak. This looks unintentional — the streak rules in the docstring make no mention of Sunday being excluded. -->
+
+***Navigaation Strategy***
+
+This bug is a problem with this route: it is notifying users when a friend adds their song, but not when they rate their song. 
+
+songs.py, with route:    POST/songs/song_id/listen        --> streak_service.record_listening_event(user_id:, song_id). This function calls update_listening_streak() in streak_service.py, where we find the bug. 
+
+
+***Reproducting the Error***
+
+First, need to call POST/songs/song_id/listen from a valid user, set theirr streak to 2 with last_listened-at = yesterday, then POST today to show the reset. 
+
+![alt text](<Images/Bug_Verifications_Before_Fixes/4. Bug verification before (1) .png>)
+
+After psting a listenevent today (Sunday), the bug is clearly demonstrated: 
+![alt text](<Images/Bug_Verifications_Before_Fixes/4. Bug verification before (1) - part 2.png>)
+
+Bug resets to 1 instead of incrementing to 3. 
+
+![alt text](<Images/Bug_Verifications_Before_Fixes/4.  Bug Result before (1) - part 3 .png>)
+
+
+***Explanation***
+
+The root cause of this bug in update_listening_streak() on streak_service.py elif days_since_last == 1 and today.weekday() != 6: The today.weekday() != 6 condition skips the streak increment on Sundays (weekday 6), which means listening on a Sunday after Saturday never extends the streak.
+
+Fix is to change Line 73 in streak_service.py from
+elif days_since_last == 1 and today.weekday() != 6: to 
+
+elif days_since_last == 1 
+
+After fix, we see that streak is now correctly set to 3. 
+
+![alt text](<Images/Bug_Verification_After_Fixes/4. Bug verification after fix (1).png>)
+
+***Side Effect Checks***
+No side effects changes. 
+get_streak(): Read-only, not affected.
+record_listening_event(): Unaffected — it just calls update_listening_streak() and commits.
+
+And unit test failure has been fixed. 
+
+![alt text](<Images/Test_Files/3. Test Run 3 (After Bug Fix 1).png>)
+
+
 
 
 
